@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Unit 1: The Warm New Year</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #f6f3eb;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+    }
+    .reader-card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 480px;
+      border-radius: 22px;
+      box-shadow: 0 10px 30px rgba(80, 60, 40, 0.1);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      border: 3px solid #eddcd2;
+    }
+
+    /* 顶部信息栏 */
+    .header {
+      padding: 12px 16px;
+      background: #6c5ce7;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      font-size: 15px;
+    }
+    .page-num {
+      background: rgba(255, 255, 255, 0.25);
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 13px;
+    }
+
+    /* 插画容器 */
+    .img-box {
+      width: 100%;
+      height: 240px;
+      background: #eef2f7;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .story-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* 故事文字区 */
+    .story-body {
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 250px;
+      background: #fffdf9;
+    }
+    .sentence-card {
+      background: #ffffff;
+      border: 1.5px solid #ece7e1;
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    }
+    .sentence-text {
+      font-size: 18px;
+      line-height: 1.6;
+      color: #2d3436;
+    }
+
+    /* 可点击单词 */
+    .word {
+      display: inline-block;
+      cursor: pointer;
+      padding: 1px 3px;
+      border-radius: 4px;
+      transition: all 0.15s ease;
+    }
+    .word:active {
+      background: #ffeaa7;
+      transform: scale(1.05);
+    }
+    /* 重点词高亮样式 */
+    .target-word {
+      color: #e17055;
+      font-weight: 800;
+      border-bottom: 2px dashed #e17055;
+    }
+
+    /* 查看翻译按钮 */
+    .btn-row {
+      display: flex;
+      margin-top: 8px;
+    }
+    .trans-btn {
+      border: none;
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      background: #f3e5f5;
+      color: #7b1fa2;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .trans-btn:active {
+      opacity: 0.7;
+    }
+
+    /* 默认隐藏的中文翻译 */
+    .sentence-trans {
+      display: none;
+      font-size: 14px;
+      color: #636e72;
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px dashed #dcdde1;
+      line-height: 1.5;
+    }
+
+    /* 底部翻页栏 */
+    .footer-bar {
+      padding: 12px 16px 16px;
+      display: flex;
+      gap: 12px;
+      background: #ffffff;
+    }
+    .nav-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .nav-prev {
+      background: #edf2f7;
+      color: #4a5568;
+    }
+    .nav-next {
+      background: #00b894;
+      color: white;
+    }
+    .nav-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    /* 单词释义悬浮框 */
+    #wordPopup {
+      display: none;
+      position: absolute;
+      top: 55px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(45, 52, 54, 0.95);
+      color: white;
+      padding: 7px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      z-index: 999;
+      pointer-events: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    /* 启动层：解锁移动端声音权限 */
+    #audioStarter {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255, 255, 255, 0.96);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      padding: 24px;
+      text-align: center;
+    }
+    .start-btn {
+      background: #6c5ce7;
+      color: white;
+      border: none;
+      padding: 14px 32px;
+      border-radius: 30px;
+      font-size: 17px;
+      font-weight: bold;
+      box-shadow: 0 6px 16px rgba(108, 92, 231, 0.35);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="reader-card">
+  <!-- 首次进入激活声音层 -->
+  <div id="audioStarter">
+    <div style="font-size: 50px;">🐰❤️🐻</div>
+    <div style="font-size: 18px; font-weight: bold; color: #2d3436;">Unit 1: The Warm New Year</div>
+    <div style="font-size: 13px; color: #636e72;">点击开启纯正点读发音，陪伴孩子沉浸式阅读</div>
+    <button class="start-btn" onclick="startApp()">开启绘本阅读 🎵</button>
+  </div>
+
+  <!-- 顶部状态栏 -->
+  <div class="header">
+    <span>🐾 Unit 1: A Warm Family</span>
+    <span class="page-num" id="pageIndicator">Page 1 / 10</span>
+  </div>
+
+  <!-- 单词翻译悬浮泡泡 -->
+  <div id="wordPopup">
+    <span id="popupEn" style="color: #ffeaa7; font-weight: bold;"></span>: 
+    <span id="popupCn"></span>
+  </div>
+
+  <!-- 绘本插图展示区（已经绑定 1.jpg 到 10.jpg） -->
+  <div class="img-box">
+    <img id="pageImg" class="story-img" src="1.jpg" alt="绘本插图" onerror="this.src='https://images.unsplash.com/photo-1590422749897-4767114e7a2b?auto=format&fit=crop&w=800&q=80'">
+  </div>
+
+  <!-- 故事文字区 -->
+  <div class="story-body" id="storyContent"></div>
+
+  <!-- 翻页控制 -->
+  <div class="footer-bar">
+    <button class="nav-btn nav-prev" id="prevBtn" onclick="prevPage()">⬅️ 上一页</button>
+    <button class="nav-btn nav-next" id="nextBtn" onclick="nextPage()">下一页 ➡️</button>
+  </div>
+</div>
+
+<script>
+  // 简易词汇库
+  const dict = {
+    "new": "新的", "year": "年", "long": "长的", "round": "圆的",
+    "think": "想；思考", "short": "短的；矮的", "nice": "美好的；好看的",
+    "kind": "和蔼的；善良的", "old": "老的；年长的", "young": "年轻的；年幼的",
+    "uncle": "叔叔；伯伯", "his": "他的", "him": "他(宾格)",
+    "deep": "深的", "in": "在...里", "the": "这/那", "forest": "森林",
+    "there": "那里", "is": "是", "a": "一只/一个", "rabbit": "兔子",
+    "named": "名叫", "pip": "皮普(兔子名)", "he": "他", "very": "非常",
+    "has": "有", "ears": "耳朵", "tail": "尾巴", "barnaby": "巴纳比(熊名)",
+    "bear": "大熊", "body": "身体", "fat": "胖胖的", "slow": "慢的",
+    "why": "为什么", "does": "助动词", "call": "称呼", "one": "一个",
+    "cold": "寒冷的", "day": "日子/白天", "lost": "迷路了", "snow": "雪",
+    "found": "找到了", "took": "带回", "to": "到...", "home": "家",
+    "gave": "给", "hot": "热的", "soup": "汤", "so": "所以",
+    "now": "现在", "coming": "即将来临", "legs": "腿", "are": "是",
+    "walk": "走", "i": "我", "can": "可以", "help": "帮助",
+    "says": "说", "looks": "看", "at": "对着", "wood": "木头",
+    "sticks": "木棍/树枝", "some": "一些", "what": "什么", "make": "制作",
+    "sled": "雪橇", "good": "好的", "idea": "主意", "cuts": "剪切/修理",
+    "wheel": "轮子", "looks": "看起来", "loves": "喜爱", "sit": "坐下",
+    "down": "向下", "pulls": "拉动", "across": "穿过", "animals": "动物们",
+    "see": "看见", "cheer": "欢呼", "happy": "快乐的", "warm": "温暖的",
+    "heart": "心"
+  };
+
+  const targetWords = ["new", "year", "long", "round", "think", "short", "nice", "kind", "old", "young", "uncle", "his", "him"];
+
+  // 10页故事：图片路径已设为 1.jpg ~ 10.jpg
+  const storyBook = [
+    {
+      img: "1.jpg",
+      sentences: [
+        { en: "Deep in the forest, there is a little rabbit named Pip.", cn: "在森林深处，有一只名叫皮普的小兔子。" },
+        { en: "Pip is very young.", cn: "皮普非常年幼。" },
+        { en: "He has two long ears and a short tail.", cn: "他长着两只长长的耳朵和一条短短的尾巴。" }
+      ]
+    },
+    {
+      img: "2.jpg",
+      sentences: [
+        { en: "Pip lives next to an old bear named Barnaby.", cn: "皮普住在一只名叫巴纳比的老熊隔壁。" },
+        { en: "Barnaby has a round body.", cn: "巴纳比有一个圆滚滚的身体。" },
+        { en: "His legs are old and slow.", cn: "他的双腿已经上了年纪，走起路来慢慢的。" }
+      ]
+    },
+    {
+      img: "3.jpg",
+      sentences: [
+        { en: "Why does young Pip call this old bear his uncle?", cn: "为什么年幼的皮普管这只老熊叫叔叔呢？" },
+        { en: "Because Barnaby is very kind.", cn: "因为巴纳比非常和蔼善良。" }
+      ]
+    },
+    {
+      img: "4.jpg",
+      sentences: [
+        { en: "One cold day, Pip was lost in the white snow.", cn: "在一个寒冷的日子里，皮普在白雪中迷路了。" },
+        { en: "The kind bear found him and took him home.", cn: "那位善良的大熊找到了他，并把他带回了家。" },
+        { en: "Barnaby gave him hot soup.", cn: "巴纳比给他盛了热热的汤。" }
+      ]
+    },
+    {
+      img: "5.jpg",
+      sentences: [
+        { en: "Now, the New Year is coming to the forest.", cn: "现在，森林的新年就要到了。" },
+        { en: "The old bear cannot walk in the deep snow.", cn: "老熊没有办法在深雪中走远。" },
+        { en: "\"I can do a nice thing for him!\" says Pip.", cn: "“我可以为他做一件大好事！”皮普说。" }
+      ]
+    },
+    {
+      img: "6.jpg",
+      sentences: [
+        { en: "Pip looks at the wood in the snow.", cn: "皮普看着雪地里的木头。" },
+        { en: "He sees long sticks and short sticks.", cn: "他看到了长长的木棍和短短的木棍。" },
+        { en: "\"What can I make for my uncle?\" Pip thinks.", cn: "“我能为我的叔叔做点什么呢？”皮普思考着。" }
+      ]
+    },
+    {
+      img: "7.jpg",
+      sentences: [
+        { en: "\"I think a new sled with round wheels is good!\" says Pip.", cn: "“我想，一辆带圆轮子的新雪橇一定很棒！”皮普说。" },
+        { en: "Pip works hard all day.", cn: "皮普一整天都在努力工作。" }
+      ]
+    },
+    {
+      img: "8.jpg",
+      sentences: [
+        { en: "The sled is ready! It is a nice red sled.", cn: "雪橇做好了！这是一辆好看的红色雪橇。" },
+        { en: "His uncle smiles at him.", cn: "他的叔叔微笑着看着他。" },
+        { en: "\"You are a kind boy, Pip!\" Barnaby says.", cn: "“你真是一个善良的孩子，皮普！”巴纳比说。" }
+      ]
+    },
+    {
+      img: "9.jpg",
+      sentences: [
+        { en: "The old bear sits on the new sled.", cn: "老熊坐在了崭新的雪橇上。" },
+        { en: "The young rabbit pulls him across the snow.", cn: "年轻的小兔子拉着他在雪地上奔跑。" }
+      ]
+    },
+    {
+      img: "10.jpg",
+      sentences: [
+        { en: "All the animals see them and cheer.", cn: "所有的动物看到他们，都欢呼起来。" },
+        { en: "\"Happy New Year, dear uncle!\" Pip smiles.", cn: "“新年快乐，亲爱的叔叔！”皮普笑着说。" },
+        { en: "They have a warm and happy year together.", cn: "他们一起度过了一个温暖又快乐的新年。" }
+      ]
+    }
+  ];
+
+  let currentPage = 0;
+  let popupTimer = null;
+  const audioPlayer = new Audio();
+
+  function startApp() {
+    document.getElementById("audioStarter").style.display = "none";
+    speakWordOrSentence("hello");
+    setTimeout(() => {
+      renderPage();
+    }, 200);
+  }
+
+  function speakWordOrSentence(text) {
+    if (!text) return;
+    const clean = text.trim();
+    const audioUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(clean)}&type=2`;
+    audioPlayer.src = audioUrl;
+    audioPlayer.play().catch(() => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(clean);
+        utter.lang = 'en-US';
+        utter.rate = 0.82;
+        window.speechSynthesis.speak(utter);
+      }
+    });
+  }
+
+  // 翻页自动连读
+  function autoReadPage() {
+    const list = storyBook[currentPage].sentences;
+    let idx = 0;
+    function playNext() {
+      if (idx < list.length) {
+        const clean = list[idx].en;
+        const audioUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(clean)}&type=2`;
+        audioPlayer.src = audioUrl;
+        audioPlayer.onended = () => {
+          idx++;
+          playNext();
+        };
+        audioPlayer.play().catch(() => {});
+      }
+    }
+    playNext();
+  }
+
+  function renderWords(sentenceStr) {
+    const rawWords = sentenceStr.split(" ");
+    return rawWords.map(token => {
+      const clean = token.replace(/[^a-zA-Z]/g, "").toLowerCase();
+      const isTarget = targetWords.includes(clean);
+      return `<span class="word ${isTarget ? 'target-word' : ''}" onclick="onWordClick(event, '${clean}')">${token}</span>`;
+    }).join(" ");
+  }
+
+  // 点击单词发音 + 翻译
+  function onWordClick(e, wordKey) {
+    e.stopPropagation();
+    if (!wordKey) return;
+
+    speakWordOrSentence(wordKey);
+
+    const popup = document.getElementById("wordPopup");
+    const enSpan = document.getElementById("popupEn");
+    const cnSpan = document.getElementById("popupCn");
+
+    enSpan.innerText = wordKey;
+    cnSpan.innerText = dict[wordKey] || "基础词汇";
+
+    popup.style.display = "block";
+    clearTimeout(popupTimer);
+    popupTimer = setTimeout(() => {
+      popup.style.display = "none";
+    }, 2000);
+  }
+
+  // 切换翻译显示/隐藏
+  function toggleTrans(id) {
+    const el = document.getElementById(id);
+    el.style.display = (el.style.display === "block") ? "none" : "block";
+  }
+
+  // 渲染页面
+  function renderPage() {
+    const pageData = storyBook[currentPage];
+    document.getElementById("pageImg").src = pageData.img;
+    document.getElementById("pageIndicator").innerText = `Page ${currentPage + 1} / ${storyBook.length}`;
+
+    const container = document.getElementById("storyContent");
+    container.innerHTML = "";
+
+    pageData.sentences.forEach((item, idx) => {
+      const transId = `trans_${currentPage}_${idx}`;
+      const card = document.createElement("div");
+      card.className = "sentence-card";
+      card.innerHTML = `
+        <div class="sentence-text">${renderWords(item.en)}</div>
+        <div class="btn-row">
+          <button class="trans-btn" onclick="toggleTrans('${transId}')">👁️ 查看翻译</button>
+        </div>
+        <div class="sentence-trans" id="${transId}">${item.cn}</div>
+      `;
+      container.appendChild(card);
+    });
+
+    document.getElementById("prevBtn").disabled = (currentPage === 0);
+    document.getElementById("nextBtn").disabled = (currentPage === storyBook.length - 1);
+
+    autoReadPage();
+  }
+
+  function prevPage() {
+    if (currentPage > 0) {
+      currentPage--;
+      renderPage();
+    }
+  }
+
+  function nextPage() {
+    if (currentPage < storyBook.length - 1) {
+      currentPage++;
+      renderPage();
+    }
+  }
+</script>
+
+</body>
+</html>
